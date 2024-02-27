@@ -12,8 +12,8 @@ export function FrontendStack({ stack, app }: StackContext) {
   const site = new StaticSite(stack, "ReactSite", {
     path: "packages/frontend",
     buildCommand: "pnpm run build",
-    buildOutput: "dist",
-    customDomain: app.stage === "prod" ? "demo.sst.dev" : undefined,
+    buildOutput: "build/client",
+    // customDomain: app.stage === "prod" ? "demo.sst.dev" : undefined,
     // Pass in our environment variables
     environment: {
       VITE_REGION: app.region,
