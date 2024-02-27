@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form";
 import { NoteType } from "../types/note";
 import { s3Upload } from "../lib/awsLib";
 import { onError } from "../lib/errorLib";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@remix-run/react";
 import LoaderButton from "../components/LoaderButton";
 import config from "../config";
 import "./NewNote.css";

@@ -7,7 +7,7 @@ import { onError } from "../lib/errorLib";
 import Stack from "react-bootstrap/Stack";
 import { API, Storage } from "aws-amplify";
 import LoaderButton from "../components/LoaderButton";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "@remix-run/react";
 import "./Notes.css";
 
 export default function Notes() {

@@ -1,5 +1,5 @@
 import { cloneElement, ReactElement } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "@remix-run/react";
 import { useAppContext } from "../lib/contextLib";
 
 function querystring(name: string, url = window.location.href) {
