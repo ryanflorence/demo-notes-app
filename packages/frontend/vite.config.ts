@@ -18,9 +18,7 @@ export default defineConfig({
       ssr: false,
       routes(defineRoutes) {
         return defineRoutes(route => {
-          // fallback to component Routes.tsx for all URLs and the root index
-          // there's a warning in the console but we'll adjust it later
-          route("", "Routes.tsx", { index: true, id: "root-index" });
+          route("", "containers/Home.tsx", { index: true });
           route("*", "Routes.tsx");
         });
       },

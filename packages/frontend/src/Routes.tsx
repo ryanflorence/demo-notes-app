@@ -1,5 +1,4 @@
 import { Route, Routes } from "@remix-run/react";
-import Home from "./containers/Home.tsx";
 import Login from "./containers/Login.tsx";
 import Notes from "./containers/Notes.tsx";
 import Signup from "./containers/Signup.tsx";
@@ -12,7 +11,6 @@ import UnauthenticatedRoute from "./components/UnauthenticatedRoute.tsx";
 export default function Links() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
       <Route
         path="/login"
         element={
