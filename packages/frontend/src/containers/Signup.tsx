@@ -3,9 +3,8 @@ import { Auth } from "aws-amplify";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useRevalidator } from "@remix-run/react";
 import { useFormFields } from "../lib/hooksLib";
-import { useAppContext } from "../lib/contextLib";
 import LoaderButton from "../components/LoaderButton";
 import { ISignUpResult } from "amazon-cognito-identity-js";
 import "./Signup.css";
@@ -18,7 +17,7 @@ export default function Signup() {
     confirmationCode: "",
   });
   const nav = useNavigate();
-  const { userHasAuthenticated } = useAppContext();
+  const { revalidate } = useRevalidator();
   const [isLoading, setIsLoading] = useState(false);
   const [newUser, setNewUser] = useState<null | ISignUpResult>(null);
 
@@ -51,14 +50,14 @@ export default function Signup() {
   }
 
   async function handleConfirmationSubmit(
-    event: React.FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
     setIsLoading(true);
     try {
       await Auth.confirmSignUp(fields.email, fields.confirmationCode);
       await Auth.signIn(fields.email, fields.password);
-      userHasAuthenticated(true);
+      revalidate();
       nav("/");
     } catch (e) {
       onError(e);

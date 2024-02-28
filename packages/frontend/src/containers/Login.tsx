@@ -4,12 +4,12 @@ import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
 import { useFormFields } from "../lib/hooksLib";
-import { useAppContext } from "../lib/contextLib";
 import LoaderButton from "../components/LoaderButton.tsx";
 import "./Login.css";
+import { useRevalidator } from "@remix-run/react";
 
 export default function Login() {
-  const { userHasAuthenticated } = useAppContext();
+  const { revalidate } = useRevalidator();
 
   const [fields, handleFieldChange] = useFormFields({
     email: "",
@@ -28,7 +28,7 @@ export default function Login() {
 
     try {
       await Auth.signIn(fields.email, fields.password);
-      userHasAuthenticated(true);
+      revalidate();
     } catch (error) {
       onError(error);
       setIsLoading(false);

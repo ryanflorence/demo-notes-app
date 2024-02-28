@@ -1,15 +1,6 @@
-import { createContext, useContext } from "react";
-
-export interface AppContextType {
-  isAuthenticated: boolean;
-  userHasAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const AppContext = createContext<AppContextType>({
-  isAuthenticated: false,
-  userHasAuthenticated: useAppContext,
-});
+import { useRouteLoaderData } from "@remix-run/react";
+import { type clientLoader } from "../root";
 
 export function useAppContext() {
-  return useContext(AppContext);
+  return useRouteLoaderData("root") as Awaited<ReturnType<typeof clientLoader>>;
 }
