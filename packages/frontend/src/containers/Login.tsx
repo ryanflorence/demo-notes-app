@@ -1,43 +1,56 @@
-import React, { useState } from "react";
+import {
+  useFetcher,
+  redirect,
+  ClientActionFunctionArgs,
+} from "@remix-run/react";
 import { Auth } from "aws-amplify";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
 import { useFormFields } from "../lib/hooksLib";
 import LoaderButton from "../components/LoaderButton.tsx";
+import { isAuthenticated } from "../lib/authLib.ts";
 import "./Login.css";
-import { useRevalidator } from "@remix-run/react";
+
+export async function clientLoader() {
+  return (await isAuthenticated()) ? redirect("/") : null;
+}
+
+export async function clientAction({ request }: ClientActionFunctionArgs) {
+  const fields = await request.json();
+  try {
+    await Auth.signIn(fields.email, fields.password);
+    return redirect("/");
+  } catch (error) {
+    onError(error);
+    return null;
+  }
+}
 
 export default function Login() {
-  const { revalidate } = useRevalidator();
+  const fetcher = useFetcher<typeof clientAction>();
 
   const [fields, handleFieldChange] = useFormFields({
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   function validateForm() {
     return fields.email.length > 0 && fields.password.length > 0;
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    setIsLoading(true);
-
-    try {
-      await Auth.signIn(fields.email, fields.password);
-      revalidate();
-    } catch (error) {
-      onError(error);
-      setIsLoading(false);
-    }
-  }
-
   return (
     <div className="Login">
-      <Form onSubmit={handleSubmit}>
+      <Form
+        method="post"
+        onSubmit={e => {
+          e.preventDefault();
+          fetcher.submit(fields, {
+            method: "post",
+            encType: "application/json",
+          });
+        }}
+      >
         <Stack gap={3}>
           <Form.Group controlId="email">
             <Form.Label>Email</Form.Label>
@@ -61,7 +74,7 @@ export default function Login() {
           <LoaderButton
             size="lg"
             type="submit"
-            isLoading={isLoading}
+            isLoading={fetcher.state !== "idle"}
             disabled={!validateForm()}
           >
             Login

@@ -18,6 +18,7 @@ import "./App.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
+import { isAuthenticated } from "./lib/authLib";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -74,13 +75,7 @@ export function HydrateFallback() {
 }
 
 export async function clientLoader() {
-  try {
-    await Auth.currentSession();
-    return { isAuthenticated: true };
-  } catch (error) {
-    if (error !== "No current user") throw error;
-    return { isAuthenticated: false };
-  }
+  return { isAuthenticated: await isAuthenticated() };
 }
 
 export async function clientAction() {

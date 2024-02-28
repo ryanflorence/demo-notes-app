@@ -12,14 +12,6 @@ export default function Links() {
   return (
     <Routes>
       <Route
-        path="/login"
-        element={
-          <UnauthenticatedRoute>
-            <Login />
-          </UnauthenticatedRoute>
-        }
-      />
-      <Route
         path="/signup"
         element={
           <UnauthenticatedRoute>
