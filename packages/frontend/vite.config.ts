@@ -20,6 +20,7 @@ export default defineConfig({
         return defineRoutes(route => {
           route("", "containers/Home.tsx", { index: true });
           route("/login", "containers/Login.tsx");
+          route("/signup", "containers/Signup.tsx");
           route("*", "Routes.tsx");
         });
       },
