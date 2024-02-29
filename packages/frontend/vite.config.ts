@@ -21,6 +21,7 @@ export default defineConfig({
           route("", "containers/Home.tsx", { index: true });
           route("/login", "containers/Login.tsx");
           route("/signup", "containers/Signup.tsx");
+          route("/settings", "containers/Settings.tsx");
           route("*", "Routes.tsx");
         });
       },

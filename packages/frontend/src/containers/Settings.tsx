@@ -1,49 +1,52 @@
-import { useState } from "react";
 import config from "../config";
 import { API } from "aws-amplify";
 import { onError } from "../lib/errorLib";
-import { useNavigate } from "@remix-run/react";
-import { BillingType } from "../types/billing";
+import {
+  ClientActionFunctionArgs,
+  ClientLoaderFunctionArgs,
+  redirect,
+  useFetcher,
+} from "@remix-run/react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { BillingForm, BillingFormType } from "../components/BillingForm";
+import { requireAuth } from "../lib/authLib";
 import "./Settings.css";
 
 const stripePromise = loadStripe(config.STRIPE_KEY);
 
-export default function Settings() {
-  const nav = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+  return await requireAuth(request);
+}
 
-  function billUser(details: BillingType) {
-    return API.post("notes", "/billing", {
-      body: details,
+export async function clientAction({ request }: ClientActionFunctionArgs) {
+  try {
+    await API.post("notes", "/billing", {
+      body: await request.json(),
     });
+    alert("Your card has been charged successfully!");
+    return redirect("/");
+  } catch (e) {
+    onError(e);
+    return null;
   }
+}
+
+export default function Settings() {
+  const fetcher = useFetcher<typeof clientAction>();
 
   const handleFormSubmit: BillingFormType["onSubmit"] = async (
     storage,
-    info
+    info,
   ) => {
     if (info.error) {
       onError(info.error);
       return;
     }
-
-    setIsLoading(true);
-
-    try {
-      await billUser({
-        storage,
-        source: info.token?.id,
-      });
-
-      alert("Your card has been charged successfully!");
-      nav("/");
-    } catch (e) {
-      onError(e);
-      setIsLoading(false);
-    }
+    fetcher.submit(
+      { storage, source: info.token?.id || null },
+      { method: "post", encType: "application/json" },
+    );
   };
 
   return (
@@ -59,7 +62,7 @@ export default function Settings() {
           ],
         }}
       >
-        <BillingForm isLoading={isLoading} onSubmit={handleFormSubmit} />
+        <BillingForm isLoading={!!fetcher.json} onSubmit={handleFormSubmit} />
       </Elements>
     </div>
   );
