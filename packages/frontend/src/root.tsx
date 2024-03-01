@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import {
   Form,
   Links,
@@ -7,6 +6,7 @@ import {
   ScrollRestoration,
   redirect,
   useLoaderData,
+  useNavigation,
 } from "@remix-run/react";
 import * as React from "react";
 import { Auth } from "aws-amplify";
@@ -14,6 +14,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Outlet } from "@remix-run/react";
 import { LinkContainer } from "react-router-bootstrap";
+import { BsArrowRepeat } from "react-icons/bs";
 import "./App.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -71,7 +72,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export function HydrateFallback() {
-  return null;
+  return (
+    <div className="App container py-3">
+      <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 px-3">
+        <Navbar.Brand className="fw-bold text-muted">
+          Scratch <BsArrowRepeat className="spinning" />
+        </Navbar.Brand>
+      </Navbar>
+    </div>
+  );
 }
 
 export async function clientLoader() {
@@ -85,12 +94,16 @@ export async function clientAction() {
 
 export default function App() {
   const { isAuthenticated } = useLoaderData<typeof clientLoader>();
+  const navigation = useNavigation();
 
   return (
     <div className="App container py-3">
       <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 px-3">
         <LinkContainer to="/">
-          <Navbar.Brand className="fw-bold text-muted">Scratch</Navbar.Brand>
+          <Navbar.Brand className="fw-bold text-muted">
+            Scratch{" "}
+            {navigation.location && <BsArrowRepeat className="spinning" />}
+          </Navbar.Brand>
         </LinkContainer>
         <Navbar.Toggle />
         <Navbar.Collapse className="justify-content-end">
