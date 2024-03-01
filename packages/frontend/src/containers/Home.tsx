@@ -44,7 +44,11 @@ export default function Home() {
           </LinkContainer>
           {(notes as NoteType[]).map(({ noteId, content, createdAt }) => (
             <LinkContainer key={noteId} to={`/notes/${noteId}`}>
-              <ListGroup.Item action className="text-nowrap text-truncate">
+              <ListGroup.Item
+                active={false} // remove weird active styling from react-bootstrap
+                action
+                className="text-nowrap text-truncate"
+              >
                 <span className="fw-bold">{content.trim().split("\n")[0]}</span>
                 <br />
                 <span className="text-muted">
