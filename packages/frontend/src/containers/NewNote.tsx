@@ -18,10 +18,10 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {
   const formData = await request.formData();
-  const file = formData.get("attachment") as File | null;
+  const file = formData.get("attachment") as File;
   const content = String(formData.get("content"));
 
-  if (file && file.size > config.MAX_ATTACHMENT_SIZE) {
+  if (file.size > config.MAX_ATTACHMENT_SIZE) {
     alert(
       `Please pick a file smaller than ${
         config.MAX_ATTACHMENT_SIZE / 1000000
@@ -31,7 +31,7 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
   }
 
   try {
-    const attachment = file ? await s3Upload(file) : undefined;
+    const attachment = file.size ? await s3Upload(file) : undefined;
     await API.post("notes", "/notes", { body: { content, attachment } });
     return redirect("/");
   } catch (e) {

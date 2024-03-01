@@ -4,16 +4,17 @@ import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
 import {
   ClientActionFunctionArgs,
+  ClientLoaderFunctionArgs,
   redirect,
   useFetcher,
 } from "@remix-run/react";
 import { useFormFields } from "../lib/hooksLib";
 import LoaderButton from "../components/LoaderButton";
 import "./Signup.css";
-import { isAuthenticated } from "../lib/authLib";
+import { requireNoAuth } from "../lib/authLib";
 
-export async function clientLoader() {
-  return (await isAuthenticated()) ? redirect("/") : null;
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+  return requireNoAuth(request);
 }
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {

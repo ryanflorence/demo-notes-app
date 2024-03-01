@@ -23,6 +23,7 @@ export default defineConfig({
           route("/signup", "containers/Signup.tsx");
           route("/settings", "containers/Settings.tsx");
           route("/notes/new", "containers/NewNote.tsx");
+          route("/notes/:id", "containers/Notes.tsx");
           route("*", "Routes.tsx");
         });
       },

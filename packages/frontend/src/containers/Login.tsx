@@ -2,6 +2,7 @@ import {
   useFetcher,
   redirect,
   ClientActionFunctionArgs,
+  ClientLoaderFunctionArgs,
 } from "@remix-run/react";
 import { Auth } from "aws-amplify";
 import Form from "react-bootstrap/Form";
@@ -9,11 +10,11 @@ import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
 import { useFormFields } from "../lib/hooksLib";
 import LoaderButton from "../components/LoaderButton.tsx";
-import { isAuthenticated } from "../lib/authLib.ts";
+import { requireNoAuth } from "../lib/authLib.ts";
 import "./Login.css";
 
-export async function clientLoader() {
-  return (await isAuthenticated()) ? redirect("/") : null;
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+  return requireNoAuth(request);
 }
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {

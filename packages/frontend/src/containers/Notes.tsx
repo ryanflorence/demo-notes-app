@@ -1,138 +1,83 @@
-import React, { useRef, useState, useEffect } from "react";
 import config from "../config";
 import Form from "react-bootstrap/Form";
-import { NoteType } from "../types/note";
 import { s3Upload } from "../lib/awsLib";
-import { onError } from "../lib/errorLib";
 import Stack from "react-bootstrap/Stack";
 import { API, Storage } from "aws-amplify";
 import LoaderButton from "../components/LoaderButton";
-import { useParams, useNavigate } from "@remix-run/react";
+import {
+  ClientLoaderFunctionArgs as CLFA,
+  ClientActionFunctionArgs as CFFA,
+  useLoaderData,
+  useFetcher,
+  redirect,
+} from "@remix-run/react";
+import { requireAuth } from "../lib/authLib";
 import "./Notes.css";
 
-export default function Notes() {
-  const file = useRef<null | File>(null);
-  const { id } = useParams();
-  const nav = useNavigate();
-  const [note, setNote] = useState<null | NoteType>(null);
-  const [content, setContent] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    function loadNote() {
-      return API.get("notes", `/notes/${id}`, {});
-    }
-
-    async function onLoad() {
-      try {
-        const note = await loadNote();
-        const { content, attachment } = note;
-
-        if (attachment) {
-          note.attachmentURL = await Storage.vault.get(attachment);
-        }
-
-        setContent(content);
-        setNote(note);
-      } catch (e) {
-        onError(e);
-      }
-    }
-
-    onLoad();
-  }, [id]);
-
-  function validateForm() {
-    return content.length > 0;
+export async function clientLoader({ request, params }: CLFA) {
+  await requireAuth(request);
+  const note = await API.get("notes", `/notes/${params.id}`, {});
+  if (note.attachment) {
+    note.attachmentURL = await Storage.vault.get(note.attachment);
   }
+  return note;
+}
+
+export async function clientAction({ request, params }: CFFA) {
+  const formData = await request.formData();
+
+  if (formData.get("intent") === "delete") {
+    await API.del("notes", `/notes/${params.id}`, {});
+    return redirect("/");
+  }
+
+  const content = String(formData.get("content"));
+  const currentFile = formData.get("attachment") as string | null;
+  const file = formData.get("newAttachment") as File;
+
+  if (file.size > config.MAX_ATTACHMENT_SIZE) {
+    alert(
+      `Please pick a file smaller than ${
+        config.MAX_ATTACHMENT_SIZE / 1000000
+      } MB.`,
+    );
+    return null;
+  }
+
+  const attachment = file.size ? await s3Upload(file) : currentFile;
+  await API.put("notes", `/notes/${params.id}`, {
+    body: { content, attachment },
+  });
+
+  return redirect("/");
+}
+
+export default function Notes() {
+  const note = useLoaderData<typeof clientLoader>();
+  const fetcher = useFetcher();
 
   function formatFilename(str: string) {
     return str.replace(/^\w+-/, "");
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    if (event.currentTarget.files === null) return;
-    file.current = event.currentTarget.files[0];
-  }
-
-  function saveNote(note: NoteType) {
-    return API.put("notes", `/notes/${id}`, {
-      body: note,
-    });
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    let attachment;
-
-    event.preventDefault();
-
-    if (file.current && file.current.size > config.MAX_ATTACHMENT_SIZE) {
-      alert(
-        `Please pick a file smaller than ${
-          config.MAX_ATTACHMENT_SIZE / 1000000
-        } MB.`
-      );
-      return;
+  const confirm = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (!window.confirm("Are you sure you want to delete this note?")) {
+      e.preventDefault();
     }
-
-    setIsLoading(true);
-
-    try {
-      if (file.current) {
-        attachment = await s3Upload(file.current);
-      } else if (note && note.attachment) {
-        attachment = note.attachment;
-      }
-
-      await saveNote({
-        content: content,
-        attachment: attachment,
-      });
-      nav("/");
-    } catch (e) {
-      onError(e);
-      setIsLoading(false);
-    }
-  }
-
-  function deleteNote() {
-    return API.del("notes", `/notes/${id}`, {});
-  }
-
-  async function handleDelete(event: React.FormEvent<HTMLModElement>) {
-    event.preventDefault();
-
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this note?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setIsDeleting(true);
-
-    try {
-      await deleteNote();
-      nav("/");
-    } catch (e) {
-      onError(e);
-      setIsDeleting(false);
-    }
-  }
+  };
 
   return (
     <div className="Notes">
       {note && (
-        <Form onSubmit={handleSubmit}>
+        <fetcher.Form method="post" encType="multipart/form-data">
           <Stack gap={3}>
             <Form.Group controlId="content">
               <Form.Control
+                defaultValue={note.content}
                 size="lg"
                 as="textarea"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                name="content"
+                required
               />
             </Form.Group>
             <Form.Group className="mt-2" controlId="file">
@@ -148,28 +93,36 @@ export default function Notes() {
                   </a>
                 </p>
               )}
-              <Form.Control onChange={handleFileChange} type="file" />
+              <input
+                type="hidden"
+                name="attachment"
+                defaultValue={note.attachment}
+              />
+              <Form.Control type="file" name="newAttachment" />
             </Form.Group>
             <Stack gap={1}>
               <LoaderButton
                 size="lg"
                 type="submit"
-                isLoading={isLoading}
-                disabled={!validateForm()}
+                name="intent"
+                value="save"
+                isLoading={fetcher.formData?.get("intent") === "save"}
               >
                 Save
               </LoaderButton>
               <LoaderButton
                 size="lg"
                 variant="danger"
-                onClick={handleDelete}
-                isLoading={isDeleting}
+                name="intent"
+                value="delete"
+                isLoading={fetcher.formData?.get("intent") === "delete"}
+                onClick={confirm}
               >
                 Delete
               </LoaderButton>
             </Stack>
           </Stack>
-        </Form>
+        </fetcher.Form>
       )}
     </div>
   );
