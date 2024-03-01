@@ -18,7 +18,7 @@ import "./App.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
-import { isAuthenticated } from "./lib/authLib";
+import { checkAuth } from "./lib/authLib";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -75,7 +75,7 @@ export function HydrateFallback() {
 }
 
 export async function clientLoader() {
-  return { isAuthenticated: await isAuthenticated() };
+  return { isAuthenticated: await checkAuth() };
 }
 
 export async function clientAction() {

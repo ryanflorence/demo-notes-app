@@ -1,7 +1,7 @@
 import { redirect } from "@remix-run/react";
 import { Auth } from "aws-amplify";
 
-export async function isAuthenticated() {
+export async function checkAuth() {
   try {
     await Auth.currentSession();
     return true;
@@ -13,7 +13,7 @@ export async function isAuthenticated() {
 
 export async function requireAuth(request: Request) {
   const { pathname, search } = new URL(request.url);
-  if (!(await isAuthenticated())) {
+  if (!(await checkAuth())) {
     throw redirect(`/login?redirect=${pathname}${search}`);
   }
   return true;
@@ -33,7 +33,7 @@ function querystring(name: string, url = window.location.href) {
 
 export async function requireNoAuth(request: Request) {
   const location = querystring("redirect", request.url) || "/";
-  if (await isAuthenticated()) {
+  if (await checkAuth()) {
     throw redirect(location);
   }
   return true;
