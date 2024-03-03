@@ -8,7 +8,6 @@ import {
   redirect,
   useFetcher,
 } from "@remix-run/react";
-import { useFormFields } from "../lib/hooksLib";
 import LoaderButton from "../components/LoaderButton";
 import "./Signup.css";
 import { requireNoAuth } from "../lib/authLib";
@@ -18,18 +17,21 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 }
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {
-  const { intent, ...fields } = await request.json();
+  const { intent, ...fields } = Object.fromEntries(
+    await request.formData(),
+  ) as Record<string, string>;
   try {
     if (intent === "signup") {
-      return await Auth.signUp({
+      await Auth.signUp({
         username: fields.email,
         password: fields.password,
       });
+      return { email: fields.email, password: fields.password };
     } else if (intent === "confirm") {
       await Auth.confirmSignUp(fields.email, fields.confirmationCode);
       await Auth.signIn(fields.email, fields.password);
       return redirect("/");
-    }
+    } else return null;
   } catch (e) {
     onError(e);
     return null;
@@ -38,120 +40,81 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
 
 export default function Signup() {
   const fetcher = useFetcher<typeof clientAction>();
-  const [fields, handleFieldChange] = useFormFields({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    confirmationCode: "",
-  });
-
-  function validateForm() {
-    return (
-      fields.email.length > 0 &&
-      fields.password.length > 0 &&
-      fields.password === fields.confirmPassword
-    );
-  }
-
-  function validateConfirmationForm() {
-    return fields.confirmationCode.length > 0;
-  }
-
-  function submit(intent: "signup" | "confirm") {
-    fetcher.submit(
-      { ...fields, intent },
-      { method: "post", encType: "application/json" },
-    );
-  }
-
-  function renderConfirmationForm() {
-    return (
-      <Form
-        onSubmit={e => {
-          e.preventDefault();
-          submit("confirm");
-        }}
-      >
-        <Stack gap={3}>
-          <Form.Group controlId="confirmationCode">
-            <Form.Label>Confirmation Code</Form.Label>
-            <Form.Control
-              size="lg"
-              autoFocus
-              type="tel"
-              onChange={handleFieldChange}
-              value={fields.confirmationCode}
-            />
-            <Form.Text muted>Please check your email for the code.</Form.Text>
-          </Form.Group>
-          <LoaderButton
+  const busy = fetcher.state !== "idle";
+  const form = fetcher.data ? (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="confirm" />
+      <input type="hidden" name="email" value={fetcher.data.email} />
+      <input type="hidden" name="password" value={fetcher.data.password} />
+      <Stack gap={3}>
+        <Form.Group controlId="confirmationCode">
+          <Form.Label>Confirmation Code</Form.Label>
+          <Form.Control
             size="lg"
-            type="submit"
-            variant="success"
-            isLoading={fetcher.state !== "idle"}
-            disabled={!validateConfirmationForm()}
-          >
-            Verify
-          </LoaderButton>
-        </Stack>
-      </Form>
-    );
-  }
-
-  function renderForm() {
-    return (
-      <Form
-        onSubmit={e => {
-          e.preventDefault();
-          submit("signup");
-        }}
-      >
-        <Stack gap={3}>
-          <Form.Group controlId="email">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              size="lg"
-              autoFocus
-              type="email"
-              value={fields.email}
-              onChange={handleFieldChange}
-            />
-          </Form.Group>
-          <Form.Group controlId="password">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              size="lg"
-              type="password"
-              value={fields.password}
-              onChange={handleFieldChange}
-            />
-          </Form.Group>
-          <Form.Group controlId="confirmPassword">
-            <Form.Label>Confirm Password</Form.Label>
-            <Form.Control
-              size="lg"
-              type="password"
-              onChange={handleFieldChange}
-              value={fields.confirmPassword}
-            />
-          </Form.Group>
-          <LoaderButton
+            autoFocus
+            type="tel"
+            name="confirmationCode"
+            required
+          />
+          <Form.Text muted>Please check your email for the code.</Form.Text>
+        </Form.Group>
+        <LoaderButton
+          type="submit"
+          size="lg"
+          variant="success"
+          isLoading={busy}
+        >
+          Verify
+        </LoaderButton>
+      </Stack>
+    </fetcher.Form>
+  ) : (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="signup" />
+      <Stack gap={3}>
+        <Form.Group controlId="email">
+          <Form.Label>Email</Form.Label>
+          <Form.Control
             size="lg"
-            type="submit"
-            variant="success"
-            isLoading={fetcher.state !== "idle"}
-            disabled={!validateForm()}
-          >
-            Signup
-          </LoaderButton>
-        </Stack>
-      </Form>
-    );
-  }
-
-  return (
-    <div className="Signup">
-      {fetcher.data == null ? renderForm() : renderConfirmationForm()}
-    </div>
+            autoFocus
+            type="email"
+            name="email"
+            required
+          />
+        </Form.Group>
+        <Form.Group controlId="password">
+          <Form.Label>Password</Form.Label>
+          <Form.Control size="lg" type="password" name="password" required />
+        </Form.Group>
+        <Form.Group controlId="confirmPassword">
+          <Form.Label>Confirm Password</Form.Label>
+          <Form.Control
+            size="lg"
+            type="password"
+            name="confirmPassword"
+            required
+            onChange={e => {
+              const field = e.currentTarget as HTMLInputElement;
+              const password = field.form!.password as HTMLInputElement;
+              if (field.value !== password.value) {
+                field.setCustomValidity("Passwords do not match.");
+              } else {
+                field.setCustomValidity("");
+              }
+            }}
+          />
+        </Form.Group>
+        <LoaderButton
+          type="submit"
+          size="lg"
+          variant="success"
+          isLoading={busy}
+        >
+          Signup
+        </LoaderButton>
+      </Stack>
+    </fetcher.Form>
   );
+
+  return <div className="Signup">{form}</div>;
 }

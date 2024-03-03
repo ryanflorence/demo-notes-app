@@ -8,7 +8,6 @@ import { Auth } from "aws-amplify";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { onError } from "../lib/errorLib";
-import { useFormFields } from "../lib/hooksLib";
 import LoaderButton from "../components/LoaderButton.tsx";
 import { requireNoAuth } from "../lib/authLib.ts";
 import "./Login.css";
@@ -18,9 +17,11 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 }
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {
-  const fields = await request.json();
+  const formData = await request.formData();
+  const email = String(formData.get("email"));
+  const password = String(formData.get("password"));
   try {
-    await Auth.signIn(fields.email, fields.password);
+    await Auth.signIn(email, password);
     return redirect("/");
   } catch (error) {
     onError(error);
@@ -30,28 +31,11 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
 
 export default function Login() {
   const fetcher = useFetcher<typeof clientAction>();
-
-  const [fields, handleFieldChange] = useFormFields({
-    email: "",
-    password: "",
-  });
-
-  function validateForm() {
-    return fields.email.length > 0 && fields.password.length > 0;
-  }
+  const isLoading = fetcher.state !== "idle";
 
   return (
     <div className="Login">
-      <Form
-        method="post"
-        onSubmit={e => {
-          e.preventDefault();
-          fetcher.submit(fields, {
-            method: "post",
-            encType: "application/json",
-          });
-        }}
-      >
+      <fetcher.Form method="post">
         <Stack gap={3}>
           <Form.Group controlId="email">
             <Form.Label>Email</Form.Label>
@@ -59,29 +43,19 @@ export default function Login() {
               autoFocus
               size="lg"
               type="email"
-              value={fields.email}
-              onChange={handleFieldChange}
+              name="email"
+              required
             />
           </Form.Group>
           <Form.Group controlId="password">
             <Form.Label>Password</Form.Label>
-            <Form.Control
-              size="lg"
-              type="password"
-              value={fields.password}
-              onChange={handleFieldChange}
-            />
+            <Form.Control size="lg" type="password" name="password" required />
           </Form.Group>
-          <LoaderButton
-            size="lg"
-            type="submit"
-            isLoading={fetcher.state !== "idle"}
-            disabled={!validateForm()}
-          >
+          <LoaderButton size="lg" type="submit" isLoading={isLoading}>
             Login
           </LoaderButton>
         </Stack>
-      </Form>
+      </fetcher.Form>
     </div>
   );
 }
