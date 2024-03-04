@@ -12,7 +12,6 @@
   "dependencies": {
     "@remix-run/node": "^2.8.0",
     "@remix-run/react": "^2.8.0",
-    "@stripe/react-stripe-js": "^2.1.2",
     "@stripe/stripe-js": "^2.1.0",
     "aws-amplify": "^5.3.10",
     "bootstrap": "^5.3.1",

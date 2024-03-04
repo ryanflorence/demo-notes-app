@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import config from "../config";
 import { API } from "aws-amplify";
 import { onError } from "../lib/errorLib";
@@ -7,22 +8,44 @@ import {
   redirect,
   useFetcher,
 } from "@remix-run/react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import { BillingForm, BillingFormType } from "../components/BillingForm";
 import { requireAuth } from "../lib/authLib";
+import { loadStripe, StripeElements } from "@stripe/stripe-js";
+import Form from "react-bootstrap/Form";
+import Stack from "react-bootstrap/Stack";
+import LoaderButton from "../components/LoaderButton";
 import "./Settings.css";
 
-const stripePromise = loadStripe(config.STRIPE_KEY);
+let stripe: Awaited<ReturnType<typeof loadStripe>>;
+let elements: StripeElements;
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
-  return await requireAuth(request);
+  await requireAuth(request);
+
+  stripe = await loadStripe(config.STRIPE_KEY);
+  if (!stripe) throw new Error("Stripe failed to load");
+  elements = stripe.elements({
+    fonts: [{ cssSrc: "https://fonts.googleapis.com/css?family=Open+Sans" }],
+  });
+
+  return null;
 }
 
 export async function clientAction({ request }: ClientActionFunctionArgs) {
+  if (!stripe || !elements) throw new Error("Stripe is not loaded");
+
+  const storage = (await request.formData()).get("storage");
+  const cardElement = elements.getElement("card");
+  if (!cardElement) throw new Error("Card element not found");
+
+  const { token, error } = await stripe.createToken(cardElement);
+  if (error) {
+    onError(error);
+    return null;
+  }
+
   try {
     await API.post("notes", "/billing", {
-      body: await request.json(),
+      body: { storage, source: token.id },
     });
     alert("Your card has been charged successfully!");
     return redirect("/");
@@ -34,36 +57,52 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
 
 export default function Settings() {
   const fetcher = useFetcher<typeof clientAction>();
-
-  const handleFormSubmit: BillingFormType["onSubmit"] = async (
-    storage,
-    info,
-  ) => {
-    if (info.error) {
-      onError(info.error);
-      return;
-    }
-    fetcher.submit(
-      { storage, source: info.token?.id || null },
-      { method: "post", encType: "application/json" },
-    );
-  };
+  const isLoading = fetcher.state !== "idle";
 
   return (
     <div className="Settings">
-      <Elements
-        stripe={stripePromise}
-        options={{
-          fonts: [
-            {
-              cssSrc:
-                "https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800",
-            },
-          ],
-        }}
-      >
-        <BillingForm isLoading={!!fetcher.json} onSubmit={handleFormSubmit} />
-      </Elements>
+      <fetcher.Form className="BillingForm" method="post">
+        <Form.Group controlId="storage">
+          <Form.Label>Storage</Form.Label>
+          <Form.Control min="0" size="lg" type="number" name="storage" />
+        </Form.Group>
+        <hr />
+        <Stack gap={3}>
+          <Form.Group controlId="name">
+            <Form.Label>Cardholder&apos;s name</Form.Label>
+            <Form.Control
+              size="lg"
+              type="text"
+              placeholder="Name on the card"
+            />
+          </Form.Group>
+          <div>
+            <Form.Label>Credit Card Info</Form.Label>
+            <StripeCardField />
+          </div>
+          <LoaderButton size="lg" type="submit" isLoading={isLoading}>
+            Purchase
+          </LoaderButton>
+        </Stack>
+      </fetcher.Form>
     </div>
   );
+}
+
+function StripeCardField() {
+  useEffect(() => {
+    const card = elements.create("card", {
+      style: {
+        base: {
+          fontSize: "16px",
+          fontWeight: "400",
+          color: "#495057",
+          fontFamily: "'Open Sans', sans-serif",
+        },
+      },
+    });
+    card.mount("#card");
+  }, []);
+
+  return <div id="card" className="card-field" />;
 }
