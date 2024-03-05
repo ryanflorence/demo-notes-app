@@ -1,5 +1,5 @@
 import { API } from "aws-amplify";
-import Form from "react-bootstrap/Form";
+import Form from "react-bootstrap/cjs/Form";
 import { redirect, useFetcher } from "@remix-run/react";
 import { s3Upload } from "../lib/awsLib";
 import { onError } from "../lib/errorLib";

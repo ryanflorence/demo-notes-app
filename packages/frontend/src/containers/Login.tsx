@@ -5,8 +5,8 @@ import {
   ClientLoaderFunctionArgs,
 } from "@remix-run/react";
 import { Auth } from "aws-amplify";
-import Form from "react-bootstrap/Form";
-import Stack from "react-bootstrap/Stack";
+import Form from "react-bootstrap/cjs/Form";
+import Stack from "react-bootstrap/cjs/Stack";
 import { onError } from "../lib/errorLib";
 import LoaderButton from "../components/LoaderButton.tsx";
 import { requireNoAuth } from "../lib/authLib.ts";

@@ -3,15 +3,6 @@ import { vitePlugin as remix } from "@remix-run/dev";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  ssr: {
-    noExternal:
-      // misconfigured esm packages: node SSG pass breaks if they're not
-      // included in the bundle but vite breaks in dev mode if they are
-      // someone get me out of bundler hell plz
-      process.env.NODE_ENV === "production"
-        ? ["react-bootstrap", "react-icons"]
-        : [],
-  },
   plugins: [
     remix({
       appDirectory: "src",

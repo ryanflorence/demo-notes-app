@@ -1,5 +1,5 @@
-import Button from "react-bootstrap/Button";
-import { BsArrowRepeat } from "react-icons/bs";
+import Button from "react-bootstrap/cjs/Button";
+import { BsArrowRepeat } from "react-icons/bs/index";
 import "./LoaderButton.css";
 
 export default function LoaderButton({

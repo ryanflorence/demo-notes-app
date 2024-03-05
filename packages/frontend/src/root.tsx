@@ -10,11 +10,11 @@ import {
 } from "@remix-run/react";
 import * as React from "react";
 import { Auth } from "aws-amplify";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
+import Nav from "react-bootstrap/cjs/Nav";
+import Navbar from "react-bootstrap/cjs/Navbar";
 import { Outlet } from "@remix-run/react";
 import { LinkContainer } from "react-router-bootstrap";
-import { BsArrowRepeat } from "react-icons/bs";
+import { BsArrowRepeat } from "react-icons/bs/index";
 import "./App.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";

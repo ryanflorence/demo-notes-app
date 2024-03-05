@@ -10,8 +10,8 @@ import {
 } from "@remix-run/react";
 import { requireAuth } from "../lib/authLib";
 import { loadStripe, StripeElements } from "@stripe/stripe-js";
-import Form from "react-bootstrap/Form";
-import Stack from "react-bootstrap/Stack";
+import Form from "react-bootstrap/cjs/Form";
+import Stack from "react-bootstrap/cjs/Stack";
 import LoaderButton from "../components/LoaderButton";
 import "./Settings.css";
 

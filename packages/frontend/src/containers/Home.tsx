@@ -1,7 +1,7 @@
 import { API } from "aws-amplify";
 import { NoteType } from "../types/note";
-import { BsPencilSquare } from "react-icons/bs";
-import ListGroup from "react-bootstrap/ListGroup";
+import { BsPencilSquare } from "react-icons/bs/index";
+import ListGroup from "react-bootstrap/cjs/ListGroup";
 import { LinkContainer } from "react-router-bootstrap";
 import "./Home.css";
 import { checkAuth } from "../lib/authLib";

@@ -1,7 +1,7 @@
 import config from "../config";
-import Form from "react-bootstrap/Form";
+import Form from "react-bootstrap/cjs/Form";
 import { s3Upload } from "../lib/awsLib";
-import Stack from "react-bootstrap/Stack";
+import Stack from "react-bootstrap/cjs/Stack";
 import { API, Storage } from "aws-amplify";
 import LoaderButton from "../components/LoaderButton";
 import {
