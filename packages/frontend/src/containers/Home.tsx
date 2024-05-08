@@ -5,9 +5,9 @@ import ListGroup from "react-bootstrap/cjs/ListGroup";
 import { LinkContainer } from "react-router-bootstrap";
 import "./Home.css";
 import { checkAuth } from "../lib/authLib";
-import { ClientLoaderFunctionArgs, useLoaderData } from "react-router";
+import { useLoaderData } from "react-router";
 
-export async function clientLoader(_: ClientLoaderFunctionArgs) {
+export async function clientLoader() {
   const isAuthenticated = await checkAuth();
   return {
     isAuthenticated,
@@ -16,7 +16,10 @@ export async function clientLoader(_: ClientLoaderFunctionArgs) {
 }
 
 export default function Home() {
-  const { isAuthenticated, notes } = useLoaderData<typeof clientLoader>();
+  const { isAuthenticated, notes } = useLoaderData() as {
+    isAuthenticated: boolean;
+    notes: NoteType[] | null;
+  };
 
   function formatDate(str: undefined | string) {
     return !str ? "" : new Date(str).toLocaleString();

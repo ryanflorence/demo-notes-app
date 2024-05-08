@@ -13,6 +13,7 @@ import {
 } from "react-router";
 import { requireAuth } from "../lib/authLib";
 import "./Notes.css";
+import { NoteType } from "../types/note";
 
 export async function clientLoader({ request, params }: CLFA) {
   await requireAuth(request);
@@ -53,7 +54,7 @@ export async function clientAction({ request, params }: CFFA) {
 }
 
 export default function Notes() {
-  const note = useLoaderData<typeof clientLoader>();
+  const note = useLoaderData() as NoteType & { attachmentURL?: string };
   const fetcher = useFetcher();
 
   function formatFilename(str: string) {

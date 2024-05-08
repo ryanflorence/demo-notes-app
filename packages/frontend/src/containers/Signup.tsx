@@ -5,6 +5,7 @@ import { onError } from "../lib/errorLib";
 import {
   ClientActionFunctionArgs,
   ClientLoaderFunctionArgs,
+  FetcherWithComponents,
   redirect,
   useFetcher,
 } from "react-router";
@@ -39,7 +40,10 @@ export async function clientAction({ request }: ClientActionFunctionArgs) {
 }
 
 export default function Signup() {
-  const fetcher = useFetcher<typeof clientAction>();
+  const fetcher = useFetcher() as FetcherWithComponents<{
+    email: string;
+    password: string;
+  }>;
   const busy = fetcher.state !== "idle";
   const form = fetcher.data ? (
     <fetcher.Form method="post">

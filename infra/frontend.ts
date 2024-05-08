@@ -7,7 +7,7 @@ const region = aws.getRegionOutput().name;
 export const web = new sst.aws.StaticSite("Web", {
   path: "packages/frontend",
   build: {
-    output: "dist",
+    output: "build/client",
     command: "npm run build",
   },
   // NOTE: Disabling custom domains for now
@@ -21,4 +21,3 @@ export const web = new sst.aws.StaticSite("Web", {
     VITE_USER_POOL_CLIENT_ID: userPoolClient.id,
   },
 });
-
