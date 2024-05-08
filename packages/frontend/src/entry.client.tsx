@@ -1,11 +1,8 @@
-import React from "react";
+import { HydratedRouter } from "react-router";
+import { hydrateRoot } from "react-dom/client";
+import { startTransition } from "react";
 import { Amplify } from "aws-amplify";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router } from "react-router-dom";
 import config from "./config.ts";
-import App from "./App.tsx";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./index.css";
 
 Amplify.configure({
   Auth: {
@@ -31,10 +28,6 @@ Amplify.configure({
   },
 });
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Router>
-      <App />
-    </Router>
-  </React.StrictMode>
-);
+startTransition(() => {
+  hydrateRoot(document, <HydratedRouter />);
+});

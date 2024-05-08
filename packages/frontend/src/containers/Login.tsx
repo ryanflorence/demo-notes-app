@@ -1,43 +1,41 @@
-import React, { useState } from "react";
+import {
+  useFetcher,
+  redirect,
+  ClientActionFunctionArgs,
+  ClientLoaderFunctionArgs,
+} from "react-router";
 import { Auth } from "aws-amplify";
-import Form from "react-bootstrap/Form";
-import Stack from "react-bootstrap/Stack";
+import Form from "react-bootstrap/cjs/Form";
+import Stack from "react-bootstrap/cjs/Stack";
 import { onError } from "../lib/errorLib";
-import { useFormFields } from "../lib/hooksLib";
-import { useAppContext } from "../lib/contextLib";
 import LoaderButton from "../components/LoaderButton.tsx";
+import { requireNoAuth } from "../lib/authLib.ts";
 import "./Login.css";
 
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+  return requireNoAuth(request);
+}
+
+export async function clientAction({ request }: ClientActionFunctionArgs) {
+  const formData = await request.formData();
+  const email = String(formData.get("email"));
+  const password = String(formData.get("password"));
+  try {
+    await Auth.signIn(email, password);
+    return redirect("/");
+  } catch (error) {
+    onError(error);
+    return null;
+  }
+}
+
 export default function Login() {
-  const { userHasAuthenticated } = useAppContext();
-
-  const [fields, handleFieldChange] = useFormFields({
-    email: "",
-    password: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
-
-  function validateForm() {
-    return fields.email.length > 0 && fields.password.length > 0;
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    setIsLoading(true);
-
-    try {
-      await Auth.signIn(fields.email, fields.password);
-      userHasAuthenticated(true);
-    } catch (error) {
-      onError(error);
-      setIsLoading(false);
-    }
-  }
+  const fetcher = useFetcher<typeof clientAction>();
+  const isLoading = fetcher.state !== "idle";
 
   return (
     <div className="Login">
-      <Form onSubmit={handleSubmit}>
+      <fetcher.Form method="post">
         <Stack gap={3}>
           <Form.Group controlId="email">
             <Form.Label>Email</Form.Label>
@@ -45,29 +43,19 @@ export default function Login() {
               autoFocus
               size="lg"
               type="email"
-              value={fields.email}
-              onChange={handleFieldChange}
+              name="email"
+              required
             />
           </Form.Group>
           <Form.Group controlId="password">
             <Form.Label>Password</Form.Label>
-            <Form.Control
-              size="lg"
-              type="password"
-              value={fields.password}
-              onChange={handleFieldChange}
-            />
+            <Form.Control size="lg" type="password" name="password" required />
           </Form.Group>
-          <LoaderButton
-            size="lg"
-            type="submit"
-            isLoading={isLoading}
-            disabled={!validateForm()}
-          >
+          <LoaderButton size="lg" type="submit" isLoading={isLoading}>
             Login
           </LoaderButton>
         </Stack>
-      </Form>
+      </fetcher.Form>
     </div>
   );
 }
