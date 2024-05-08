@@ -7,7 +7,7 @@ import { onError } from "../lib/errorLib";
 import Stack from "react-bootstrap/Stack";
 import { API, Storage } from "aws-amplify";
 import LoaderButton from "../components/LoaderButton";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import "./Notes.css";
 
 export default function Notes() {
@@ -71,7 +71,7 @@ export default function Notes() {
       alert(
         `Please pick a file smaller than ${
           config.MAX_ATTACHMENT_SIZE / 1000000
-        } MB.`
+        } MB.`,
       );
       return;
     }
@@ -104,7 +104,7 @@ export default function Notes() {
     event.preventDefault();
 
     const confirmed = window.confirm(
-      "Are you sure you want to delete this note?"
+      "Are you sure you want to delete this note?",
     );
 
     if (!confirmed) {
@@ -132,7 +132,7 @@ export default function Notes() {
                 size="lg"
                 as="textarea"
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={e => setContent(e.target.value)}
               />
             </Form.Group>
             <Form.Group className="mt-2" controlId="file">

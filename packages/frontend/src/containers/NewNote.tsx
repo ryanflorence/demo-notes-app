@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form";
 import { NoteType } from "../types/note";
 import { s3Upload } from "../lib/awsLib";
 import { onError } from "../lib/errorLib";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import LoaderButton from "../components/LoaderButton";
 import config from "../config";
 import "./NewNote.css";
@@ -37,7 +37,7 @@ export default function NewNote() {
       alert(
         `Please pick a file smaller than ${
           config.MAX_ATTACHMENT_SIZE / 1000000
-        } MB.`
+        } MB.`,
       );
       return;
     }
@@ -64,7 +64,7 @@ export default function NewNote() {
           <Form.Control
             value={content}
             as="textarea"
-            onChange={(e) => setContent(e.target.value)}
+            onChange={e => setContent(e.target.value)}
           />
         </Form.Group>
         <Form.Group className="mt-2" controlId="file">

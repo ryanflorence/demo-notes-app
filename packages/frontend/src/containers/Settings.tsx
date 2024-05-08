@@ -2,7 +2,7 @@ import { useState } from "react";
 import config from "../config";
 import { API } from "aws-amplify";
 import { onError } from "../lib/errorLib";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { BillingType } from "../types/billing";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -23,7 +23,7 @@ export default function Settings() {
 
   const handleFormSubmit: BillingFormType["onSubmit"] = async (
     storage,
-    info
+    info,
   ) => {
     if (info.error) {
       onError(info.error);
