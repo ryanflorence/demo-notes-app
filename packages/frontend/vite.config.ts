@@ -11,8 +11,17 @@ export default defineConfig({
       future: {
         unstable_singleFetch: true,
       },
-      // routes(defineRoutes) {
-      // }
+      routes(defineRoutes) {
+        return defineRoutes(route => {
+          route("", "containers/Home.tsx", { index: true });
+          route("/login", "containers/Login.tsx");
+          route("/signup", "containers/Signup.tsx");
+          route("/settings", "containers/Settings.tsx");
+          route("/notes/new", "containers/NewNote.tsx");
+          route("/notes/:id", "containers/Notes.tsx");
+          route("*", "Routes.tsx");
+        });
+      },
     }),
     inspect(),
   ],

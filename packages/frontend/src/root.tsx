@@ -1,9 +1,25 @@
+import {
+  Form,
+  Links,
+  Meta,
+  Scripts,
+  ScrollRestoration,
+  redirect,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import * as React from "react";
-import { Scripts, ScrollRestoration, Outlet } from "react-router";
-import App from "./App";
+import { Auth } from "aws-amplify";
+import Nav from "react-bootstrap/cjs/Nav";
+import Navbar from "react-bootstrap/cjs/Navbar";
+import { Outlet } from "react-router";
+import { LinkContainer } from "react-router-bootstrap";
+import { BsArrowRepeat } from "react-icons/bs/index";
+import "./App.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
+import { checkAuth } from "./lib/authLib";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,21 +58,83 @@ export function Layout({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `window.global = window; var exports = {};`,
           }}
-        ></script>
+        />
+        <Links />
+        <Meta />
       </head>
       <body>
         <div id="root">{children}</div>
-        <ScrollRestoration />
         <Scripts />
+        <ScrollRestoration />
       </body>
     </html>
   );
 }
 
 export function HydrateFallback() {
-  return <div>Loading...</div>;
+  return (
+    <div className="App container py-3">
+      <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 px-3">
+        <Navbar.Brand className="fw-bold text-muted">
+          Scratch <BsArrowRepeat className="spinning" />
+        </Navbar.Brand>
+      </Navbar>
+    </div>
+  );
 }
 
-export default function Root() {
-  return <App />;
+export async function clientLoader() {
+  console.log("clientLoader");
+  return { isAuthenticated: await checkAuth() };
+}
+
+export async function clientAction() {
+  await Auth.signOut();
+  return redirect("/login");
+}
+
+export default function App() {
+  console.log("App");
+  const { isAuthenticated } = useLoaderData() as { isAuthenticated: boolean };
+  const navigation = useNavigation();
+
+  return (
+    <div className="App container py-3">
+      <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 px-3">
+        <LinkContainer to="/">
+          <Navbar.Brand className="fw-bold text-muted">
+            Scratch{" "}
+            {navigation.location && <BsArrowRepeat className="spinning" />}
+          </Navbar.Brand>
+        </LinkContainer>
+        <Navbar.Toggle />
+        <Navbar.Collapse className="justify-content-end">
+          <Nav activeKey={window.location.pathname}>
+            {isAuthenticated ? (
+              <>
+                <LinkContainer to="/settings">
+                  <Nav.Link>Settings</Nav.Link>
+                </LinkContainer>
+                <Form method="post">
+                  <button className="nav-link" type="submit">
+                    Logout
+                  </button>
+                </Form>
+              </>
+            ) : (
+              <>
+                <LinkContainer to="/signup">
+                  <Nav.Link>Signup</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/login">
+                  <Nav.Link>Login</Nav.Link>
+                </LinkContainer>
+              </>
+            )}
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+      <Outlet />
+    </div>
+  );
 }
