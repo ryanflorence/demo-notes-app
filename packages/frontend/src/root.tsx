@@ -84,7 +84,6 @@ export function HydrateFallback() {
 }
 
 export async function clientLoader() {
-  console.log("clientLoader");
   return { isAuthenticated: await checkAuth() };
 }
 
@@ -94,7 +93,6 @@ export async function clientAction() {
 }
 
 export default function App() {
-  console.log("App");
   const { isAuthenticated } = useLoaderData() as { isAuthenticated: boolean };
   const navigation = useNavigation();
 

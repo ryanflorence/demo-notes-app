@@ -28,8 +28,6 @@ Amplify.configure({
   },
 });
 
-console.log("entry!");
-
 startTransition(() => {
   hydrateRoot(document, <HydratedRouter />);
 });
